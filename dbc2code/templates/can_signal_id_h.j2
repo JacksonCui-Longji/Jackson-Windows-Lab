@@ -1,0 +1,11 @@
+#ifndef CAN_SIGNAL_ID_H
+#define CAN_SIGNAL_ID_H
+
+typedef enum CanSignalId {
+{% for signal in database.all_signals %}
+    CAN_SIG_ID_{{ signal.signal_name.upper() }},
+{% endfor %}
+    CAN_SIG_ID_MAX_VALUE
+} CanSignalId;
+
+#endif // CAN_SIGNAL_ID_H

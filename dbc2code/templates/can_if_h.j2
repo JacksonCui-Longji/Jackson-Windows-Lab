@@ -1,0 +1,27 @@
+#ifndef CAN_IF_H
+#define CAN_IF_H
+
+#include <stdint.h>
+#include <stdbool.h>
+#include "can_signal_id.h"
+
+typedef enum ByteOrder_t {
+    INTEL,      // LSB
+    MOTOROLA    // MSB
+} ByteOrder;
+
+typedef struct SignalInfo_t {
+    uint8_t start_bit;
+    uint8_t length;
+    ByteOrder byte_order;
+    bool is_signed;
+    float factor;
+    float offset;
+    float min_value;
+    float max_value;
+} SignalInfo;
+
+float GetSignalValue(CanSignalId sig_id, const uint8_t* can_data);
+bool  SetSignalValue(CanSignalId sig_id, uint8_t* can_data, float physical_value);
+
+#endif // CAN_IF_H

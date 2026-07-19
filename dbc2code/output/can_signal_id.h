@@ -1,0 +1,13 @@
+#ifndef CAN_SIGNAL_ID_H
+#define CAN_SIGNAL_ID_H
+
+typedef enum CanSignalId {
+    CAN_SIG_ID_ENGINESPEED,
+    CAN_SIG_ID_VEHICLESPEED,
+    CAN_SIG_ID_GEAR,
+    CAN_SIG_ID_DOORSTATE,
+    CAN_SIG_ID_LOCKSTATE,
+    CAN_SIG_ID_MAX_VALUE
+} CanSignalId;
+
+#endif // CAN_SIGNAL_ID_H

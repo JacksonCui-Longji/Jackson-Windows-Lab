@@ -1,0 +1,55 @@
+#include "can_if.h"
+
+// 这张表由 Jinja2 从 database.all_signals 生成，顺序必须和 CanSignalId 枚举一致
+static const SignalInfo SignalInfoTable[CAN_SIG_ID_COUNT] = {
+    // TODO: 下次用 can_if_c.j2 生成
+};
+
+static uint64_t ExtractIntel(const uint8_t* can_data, uint8_t start_bit, uint8_t length) {
+    uint64_t raw64 = 0;
+    for (int i = 0; i < 8; i++) {
+        raw64 |= ((uint64_t)can_data[i]) << (8 * i);
+    }
+    uint64_t mask = (length == 64) ? ~0ULL : ((1ULL << length) - 1);
+    return (raw64 >> start_bit) & mask;
+}
+
+static uint64_t ExtractMotorola(const uint8_t* can_data, uint8_t start_bit, uint8_t length) {
+    uint64_t raw_value = 0;
+    for (uint8_t i = 0; i < length; i++) {
+        uint8_t dbc_bit_num = start_bit - i;
+        uint8_t byte_idx = dbc_bit_num / 8;
+        uint8_t bit_in_byte = dbc_bit_num % 8;
+        uint8_t real_bit_pos = 7 - bit_in_byte;
+        uint8_t bit_value = (can_data[byte_idx] >> real_bit_pos) & 0x01;
+        raw_value |= ((uint64_t)bit_value) << (length - 1 - i);
+    }
+    return raw_value;
+}
+
+static int64_t SignExtend(uint64_t raw_value, uint8_t length) {
+    if (raw_value & (1ULL << (length - 1))) {
+        // 最高位是1, 说明是负数, 需要把高位全部补1
+        uint64_t sign_mask = ~((1ULL << length) - 1);
+        return (int64_t)(raw_value | sign_mask);
+    }
+    return (int64_t)raw_value;
+}
+
+float GetSignalValue(CanSignalId sig_id, const uint8_t* can_data) {
+    const SignalInfo* info = &SignalInfoTable[sig_id];
+
+    uint64_t raw_value = (info->byte_order == INTEL)
+        ? ExtractIntel(can_data, info->start_bit, info->length)
+        : ExtractMotorola(can_data, info->start_bit, info->length);
+
+    float physical_value;
+    if (info->is_signed) {
+        int64_t signed_raw = SignExtend(raw_value, info->length);
+        physical_value = (float)signed_raw * info->factor + info->offset;
+    } else {
+        physical_value = (float)raw_value * info->factor + info->offset;
+    }
+
+    return physical_value;
+}

@@ -10,11 +10,11 @@ def ParserCANMessage(line: str) -> model.Message:
         message_name = match.group(2)
         dlc = int(match.group(3))
         transmitter = match.group(4)
-        return model.Message(message_id, message_name, dlc, transmitter, signals=[])
+        return model.Message(message_name, message_id, dlc, transmitter, signals=[])
     return None
 
 def ParserCANSignal(line: str) -> model.Signal:
-    pattern = r'SG_ (\w+) : (\d+)\|(\d+)@(\d)([+-]) \(([\-\d.]+),([\-\d.]+)\) \[([\-\d.]+)\|([\-\d.]+)\] "(\w*)" (.+)'
+    pattern = r'SG_ (\w+) : (\d+)\|(\d+)@(\d)([+-]) \(([\-\d.]+),([\-\d.]+)\) \[([\-\d.]+)\|([\-\d.]+)\] "([^"]*)" (.+)'
     match = re.match(pattern, line.strip())
     if match:
         signal_name = match.group(1)

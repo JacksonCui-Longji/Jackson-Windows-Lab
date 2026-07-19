@@ -1,0 +1,8 @@
+#ifndef CAN_ID_H
+#define CAN_ID_H
+
+#define CAN_ID_MESSAGE_ENGINESTATUS 0x100
+#define CAN_ID_MESSAGE_BCMSTATUS 0x200
+
+
+#endif // CAN_ID_H

@@ -1,0 +1,9 @@
+#ifndef CAN_ID_H
+#define CAN_ID_H
+
+{% for message in database.messages %}
+#define CAN_ID_MESSAGE_{{message.message_name.upper()}} 0x{{"%03X" | format(message.message_id)}}
+{% endfor %}
+
+
+#endif // CAN_ID_H
