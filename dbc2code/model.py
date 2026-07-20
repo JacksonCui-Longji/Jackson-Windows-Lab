@@ -1,6 +1,5 @@
-
-from enum import Enum
 from dataclasses import dataclass, field
+from enum import Enum
 
 class ByteOrder(Enum):
     MOTOROLA = 0
@@ -19,6 +18,7 @@ class Signal:
     max_value: float
     unit: str
     receiver: list[str]
+    message_index: int = field(init=False, default=-1)
 
 @dataclass
 class Message:
@@ -36,6 +36,7 @@ class DataBase:
 
     def __post_init__(self):
         self.signal_counts = sum(len(message.signals) for message in self.messages)
-        for message in self.messages:
+        for msg_idx, message in enumerate(self.messages):
             for signal in message.signals:
+                signal.message_index = msg_idx
                 self.all_signals.append(signal)

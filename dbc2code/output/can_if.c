@@ -2,15 +2,16 @@
 #include <string.h>
 
 static MessageBuffer MessageBufferTable[] = {
-{% for message in database.messages %}
-    { 0x{{ "%03X" | format(message.message_id) }}, {{ message.dlc }}, {0} }{{ "," if not loop.last else "" }}
-{% endfor %}
+    { 0x100, 8, {0} },
+    { 0x200, 4, {0} }
 };
 
 static const SignalInfo SignalInfoTable[CAN_SIG_ID_MAX_VALUE] = {
-{% for signal in database.all_signals %}
-    { {{ signal.message_index }}, {{ signal.start_bit }}, {{ signal.length }}, {{ signal.byte_order.name }}, {{ "true" if signal.signed else "false" }}, {{ signal.factor }}f, {{ signal.offset }}f, {{ signal.min_value }}f, {{ signal.max_value }}f }{{ "," if not loop.last else "" }}
-{% endfor %}
+    { 0, 0, 16, INTEL, false, 0.25f, 0.0f, 0.0f, 8000.0f },
+    { 0, 16, 16, INTEL, false, 0.01f, 0.0f, 0.0f, 250.0f },
+    { 0, 32, 8, INTEL, false, 1.0f, 0.0f, 0.0f, 8.0f },
+    { 1, 0, 4, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f },
+    { 1, 4, 4, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f }
 };
 
 #define MESSAGE_BUFFER_COUNT (sizeof(MessageBufferTable) / sizeof(MessageBufferTable[0]))
