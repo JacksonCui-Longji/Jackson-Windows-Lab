@@ -15,6 +15,10 @@ static const SignalInfo SignalInfoTable[CAN_SIG_ID_MAX_VALUE] = {
 
 #define MESSAGE_BUFFER_COUNT (sizeof(MessageBufferTable) / sizeof(MessageBufferTable[0]))
 
+// maybe I could use malloc create the array dynamically, but for project level array is much more safer unless stack room is not enough.
+// the callback may be not in the order of CAN signals, but it could contain all of the signals.
+static SubscriberInfo callback_info[CAN_SIG_ID_MAX_VALUE] = {0};
+
 static int FindMessageBufferIndex(uint32_t message_id) {
     for (int i = 0; i < (int)MESSAGE_BUFFER_COUNT; i++) {
         if (MessageBufferTable[i].message_id == message_id) {
@@ -142,4 +146,14 @@ CanIfRet SetSignalValue(CanSignalId sig_id, float physical_value) {
     }
 
     return CAN_IF_RET_OK;
+}
+
+CanIfRet SubscribeCanSig(SubScriberInfo *info, uint32_t num) {
+    if((NULL == info) || (0 >= num)) {
+        // output log: please input valid subscribe config
+        return CAN_IF_RET_NG;
+    }
+    for(int i = 0; i < num; i++) {
+        callback_info[i] = info[i];
+    }
 }

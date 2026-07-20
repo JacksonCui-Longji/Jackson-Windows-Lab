@@ -12,6 +12,11 @@ typedef enum ByteOrder_t {
     MOTOROLA    // MSB
 } ByteOrder;
 
+typedef enum CanSignalType_t {
+    CAN_SIG_TYPE_PERIOD = 0,
+    CAN_SIG_TYPE_ONCHANGE,
+} CanSignalType;
+
 typedef enum CanIfRet_t {
     CAN_IF_RET_OK = 0,
     CAN_IF_RET_NG
@@ -35,8 +40,18 @@ typedef struct MessageBuffer_t {
     uint8_t  data[CAN_FD_MAX_DLC];
 } MessageBuffer;
 
+typedef CanIfRet (*signalcallback)(CanSignalId sig_id, float value);
+
+typedef struct SubScriberInfo_t{
+    CanSignalId sig_id;
+    CanSignalType sub_type;
+    signalcallback callback;
+}SubScriberInfo;
+
 CanIfRet GetSignalValue(CanSignalId sig_id, float* out_value);
 CanIfRet SetSignalValue(CanSignalId sig_id, float physical_value);
+CanIfRet SubscribeCanSig(SubScriberInfo *info, uint32_t num);
+
 CanIfRet UpdateCanFrame(uint32_t message_id, const uint8_t* data, uint8_t dlc);
 
 #endif // CAN_IF_H
