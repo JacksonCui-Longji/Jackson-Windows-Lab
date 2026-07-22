@@ -7,11 +7,18 @@ def ParserCANMessage(line: str) -> model.Message:
     pattern = r'^BO_\s+(\d+)\s+(\w+):\s*(\d+)\s+(\w+)'
     match = re.match(pattern, line)
     if match:
-        message_id = int(match.group(1))
+        raw_id = int(match.group(1))
+        is_extended = bool(raw_id & 0x80000000)
+        message_id = (raw_id & 0x1FFFFFFF) if is_extended else raw_id
+
         message_name = match.group(2)
         dlc = int(match.group(3))
         transmitter = match.group(4)
-        return model.Message(message_name, message_id, dlc, transmitter, signals=[])
+
+        msg = model.Message(message_name, message_id, dlc, transmitter,
+                             signals=[], is_extended=is_extended)
+        msg.raw_id = raw_id   # 临时挂一个属性，供后续 BA_ VFrameFormat 匹配用，不属于DBC模型本身
+        return msg
     return None
 
 
@@ -35,7 +42,6 @@ def ParserCANSignal(line: str) -> model.Signal:
         max_value = float(match.group(9))
         unit = match.group(10)
 
-        # DBC规范里多个接收节点用空格分隔，行尾通常带分号，都要清理掉
         receiver_str = match.group(11).rstrip(';').strip()
         receiver = receiver_str.split()
 
@@ -44,14 +50,34 @@ def ParserCANSignal(line: str) -> model.Signal:
     return None
 
 
+def ParserVFrameFormat(line: str):
+    """解析 BA_ "VFrameFormat" BO_ <raw_id> <value>; 这一行
+    返回 (raw_id, value)，value: 0=标准CAN 1=扩展CAN 2=标准CANFD 3=扩展CANFD
+    """
+    pattern = r'^BA_\s+"VFrameFormat"\s+BO_\s+(\d+)\s+(\d+)\s*;'
+    match = re.match(pattern, line.strip())
+    if match:
+        raw_id = int(match.group(1))
+        value = int(match.group(2))
+        return raw_id, value
+    return None
+
+
 def ParserCANDBC(dbc_content: str) -> model.DataBase:
     messages = []
     current_message = None
-    for line in dbc_content.splitlines():
+    raw_id_lookup = {}   # raw_id -> Message对象，供第二遍扫描VFrameFormat时查找
+
+    lines = dbc_content.splitlines()
+
+    # 第一遍：解析 BO_ / SG_，组装 Message/Signal
+    for line in lines:
         if line.startswith("BO_"):
             if current_message is not None:
                 messages.append(current_message)
             current_message = ParserCANMessage(line)
+            if current_message is not None:
+                raw_id_lookup[current_message.raw_id] = current_message
         elif line.strip().startswith("SG_"):
             signal = ParserCANSignal(line)
             if current_message is not None and signal is not None:
@@ -60,9 +86,19 @@ def ParserCANDBC(dbc_content: str) -> model.DataBase:
             if current_message is not None:
                 messages.append(current_message)
             current_message = None
-        # 其余行（CM_/BA_/VAL_/NS_/BU_等）目前不解析，直接忽略
-    if current_message is not None:      # 文件末尾没空行时的兜底
+    if current_message is not None:
         messages.append(current_message)
+
+    # 第二遍：解析 BA_ "VFrameFormat"，反过来标记对应Message是否是CAN FD
+    for line in lines:
+        if line.strip().startswith('BA_ "VFrameFormat"'):
+            result = ParserVFrameFormat(line)
+            if result is not None:
+                raw_id, value = result
+                msg = raw_id_lookup.get(raw_id)
+                if msg is not None:
+                    msg.is_canfd = (value in (2, 3))
+
     return model.DataBase(messages)
 
 

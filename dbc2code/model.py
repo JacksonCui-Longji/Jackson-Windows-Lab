@@ -27,6 +27,8 @@ class Message:
     dlc: int
     transmitter: str
     signals: list[Signal]
+    is_extended: bool = False
+    is_canfd: bool = False
 
 @dataclass
 class DataBase:
