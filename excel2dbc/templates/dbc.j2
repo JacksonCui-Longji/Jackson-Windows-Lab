@@ -1,0 +1,77 @@
+VERSION "Vehicle_Complete_DBC_V1.0_20260722"
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_;
+
+BS_:
+
+BU_: ECU TCM BCM ABS IC GW ADAS
+
+
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_ "BusType" "CAN";
+BA_DEF_ BO_  "GenMsgCycleTime" INT 0 65535;
+BA_DEF_DEF_ "GenMsgCycleTime" 100;
+BA_DEF_ BO_  "GenMsgIsCANFD" INT 0 1;
+BA_DEF_DEF_ "GenMsgIsCANFD" 0;
+BA_DEF_ SG_  "GenSigStartBit" INT 0 63;
+BA_DEF_ SG_  "GenSigBitLength" INT 1 64;
+BA_DEF_ SG_  "GenSigFactor" FLOAT -1000000 1000000;
+BA_DEF_ SG_  "GenSigOffset" FLOAT -1000000 1000000;
+BA_DEF_ SG_  "GenSigMin" FLOAT -1000000 1000000;
+BA_DEF_ SG_  "GenSigMax" FLOAT -1000000 1000000;
+
+
+;=====================================
+; Classical CAN Messages (Standard ID)
+;=====================================
+
+{% for message in database_classical.messages %}
+BO_ {{ message.message_id }} {{ message.message_name }}: {{ message.dlc }} {{ message.transmitter }}
+{% if message.comment %} CM_ BO_ {{ message.message_id }} "{{ message.comment }}" {% endif %}
+{% if message.cyc_time is defined %} BA_ "GenMsgCycleTime" BO_ {{ message.message_id }} {{ message.cyc_time }} {% endif %}
+ BA_ "GenMsgIsCANFD" BO_ {{ message.message_id }} {{ 0 if not message.is_canfd else 1 }}
+{% for signal in message.signals %}
+ SG_ {{ signal.signal_name }}		: {{ signal.start_bit }}|{{ signal.length }}@{{ 0 if signal.byte_order == ByteOrder.INTEL else 1 }}{{ '-' if signal.signed else '+' }} ({{ signal.factor }},{{ signal.offset }}) [{{ signal.min_value }}|{{ signal.max_value }}] "{{ signal.unit }}" {{ signal.receivers | join(' ') }}
+{% endfor %}
+{% endfor %}
+
+;=====================================
+; CAN FD Messages (Extended Payload)
+;=====================================
+
+{% for message in database_canfd.messages %}
+BO_ {{ message.message_id }} {{ message.message_name }}: {{ message.dlc }} {{ message.transmitter }}
+{% if message.comment %} CM_ BO_ {{ message.message_id }} "{{ message.comment }}" {% endif %}
+{% if message.cyc_time is defined %} BA_ "GenMsgCycleTime" BO_ {{ message.message_id }} {{ message.cyc_time }} {% endif %}
+ BA_ "GenMsgIsCANFD" BO_ {{ message.message_id }} {{ 0 if not message.is_canfd else 1 }}
+{% for signal in message.signals %}
+ SG_ {{ signal.signal_name }}		: {{ signal.start_bit }}|{{ signal.length }}@{{ 0 if signal.byte_order == ByteOrder.INTEL else 1 }}{{ '-' if signal.signed else '+' }} ({{ signal.factor }},{{ signal.offset }}) [{{ signal.min_value }}|{{ signal.max_value }}] "{{ signal.unit }}" {{ signal.receivers | join(' ') }}
+{% endfor %}
+{% endfor %}
