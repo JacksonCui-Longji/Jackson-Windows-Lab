@@ -2,8 +2,9 @@ import model
 import re
 from pathlib import Path
 
+
 def ParserCANMessage(line: str) -> model.Message:
-    pattern = r'^BO_ (\d+) (\w+): (\d+) (\w+)'
+    pattern = r'^BO_\s+(\d+)\s+(\w+):\s*(\d+)\s+(\w+)'
     match = re.match(pattern, line)
     if match:
         message_id = int(match.group(1))
@@ -13,8 +14,14 @@ def ParserCANMessage(line: str) -> model.Message:
         return model.Message(message_name, message_id, dlc, transmitter, signals=[])
     return None
 
+
 def ParserCANSignal(line: str) -> model.Signal:
-    pattern = r'SG_ (\w+) : (\d+)\|(\d+)@(\d)([+-]) \(([\-\d.]+),([\-\d.]+)\) \[([\-\d.]+)\|([\-\d.]+)\] "([^"]*)" (.+)'
+    pattern = (
+        r'SG_\s+(\w+)\s*:\s*(\d+)\|(\d+)@(\d)([+-])\s*'
+        r'\(([\-\d.]+),([\-\d.]+)\)\s*'
+        r'\[([\-\d.]+)\|([\-\d.]+)\]\s*'
+        r'"([^"]*)"\s*(.+)'
+    )
     match = re.match(pattern, line.strip())
     if match:
         signal_name = match.group(1)
@@ -27,14 +34,19 @@ def ParserCANSignal(line: str) -> model.Signal:
         min_value = float(match.group(8))
         max_value = float(match.group(9))
         unit = match.group(10)
-        receiver = match.group(11).split(',')
-        return model.Signal(signal_name, start_bit, length, byte_order, signed, factor, offset, min_value, max_value, unit, receiver)
+
+        # DBC规范里多个接收节点用空格分隔，行尾通常带分号，都要清理掉
+        receiver_str = match.group(11).rstrip(';').strip()
+        receiver = receiver_str.split()
+
+        return model.Signal(signal_name, start_bit, length, byte_order, signed,
+                             factor, offset, min_value, max_value, unit, receiver)
     return None
+
 
 def ParserCANDBC(dbc_content: str) -> model.DataBase:
     messages = []
     current_message = None
-
     for line in dbc_content.splitlines():
         if line.startswith("BO_"):
             if current_message is not None:
@@ -48,16 +60,16 @@ def ParserCANDBC(dbc_content: str) -> model.DataBase:
             if current_message is not None:
                 messages.append(current_message)
             current_message = None
-
+        # 其余行（CM_/BA_/VAL_/NS_/BU_等）目前不解析，直接忽略
     if current_message is not None:      # 文件末尾没空行时的兜底
         messages.append(current_message)
-
     return model.DataBase(messages)
+
 
 if __name__ == "__main__":
     script_dir = Path(__file__).parent
     dbc_path = script_dir / "input" / "vehicle.dbc"
-    with open(dbc_path, "r") as f:
+    with open(dbc_path, "r", encoding="utf-8") as f:
         dbc_content = f.read()
         database = ParserCANDBC(dbc_content)
         print(database)

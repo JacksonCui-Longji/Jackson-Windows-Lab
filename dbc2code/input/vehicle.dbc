@@ -1,13 +1,158 @@
-VERSION ""
+VERSION "Vehicle_Complete_DBC_V1.0_20260722"
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_;
+
+BS_:
+
+BU_: ECU TCM BCM ABS IC GW ADAS
+
+
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_ "BusType" "CAN";
+BA_DEF_ BO_  "GenMsgCycleTime" INT 0 65535;
+BA_DEF_DEF_ "GenMsgCycleTime" 100;
+BA_DEF_ BO_  "GenMsgIsCANFD" INT 0 1;
+BA_DEF_DEF_ "GenMsgIsCANFD" 0;
+BA_DEF_ SG_  "GenSigStartBit" INT 0 63;
+BA_DEF_ SG_  "GenSigBitLength" INT 1 64;
+BA_DEF_ SG_  "GenSigFactor" FLOAT -1000000 1000000;
+BA_DEF_ SG_  "GenSigOffset" FLOAT -1000000 1000000;
+BA_DEF_ SG_  "GenSigMin" FLOAT -1000000 1000000;
+BA_DEF_ SG_  "GenSigMax" FLOAT -1000000 1000000;
+
+
+;=====================================
+; Classical CAN Messages (Standard ID)
+;=====================================
 
 BO_ 256 EngineStatus: 8 BCM
- SG_ EngineSpeed : 0|16@1+ (0.25,0) [0|8000] "rpm" ECU
- SG_ VehicleSpeed : 16|16@1+ (0.01,0) [0|250] "km/h" ECU
- SG_ Gear : 32|8@1+ (1,0) [0|8] "" ECU
+ CM_ BO_ 256 "Engine status, period 100ms, forwarded by BCM"
+ BA_ "GenMsgCycleTime" BO_ 256 100
+ BA_ "GenMsgIsCANFD" BO_ 256 0
+ SG_ EngineSpeed      : 0|16@1+ (0.25,0) [0|8000] "rpm" ECU IC TCM
+ SG_ CoolantTemp      : 16|8@1+ (1,-40) [-40|215] "°C" ECU IC
+ SG_ OilTemp          : 24|8@1+ (1,-40) [-40|215] "°C" ECU
+ SG_ EngineRunStatus  : 32|2@1+ (1,0) [0|3] "" ECU IC BCM
+ SG_ ThrottlePos      : 40|12@1+ (0.025,0) [0|100] "%" ECU TCM
 
-BO_ 512 BCMStatus: 4 BCM
- SG_ DoorState : 0|4@1+ (1,0) [0|1] "" BCM
- SG_ LockState : 4|4@1+ (1,0) [0|1] "" BCM
+ CM_ SG_ 256 EngineSpeed "Engine crankshaft speed"
+ CM_ SG_ 256 EngineRunStatus "0=Off 1=Idle 2=Running 3=Fault"
+ VAL_ 256 EngineRunStatus 0 "Off" 1 "Idle" 2 "Running" 3 "Fault"
 
-CM_ BO_ 256 "Engine status broadcast message";
-CM_ SG_ 256 EngineSpeed "Current engine RPM";
+BO_ 257 TransmissionStatus: 8 TCM
+ CM_ BO_ 257 "Transmission status, period 50ms"
+ BA_ "GenMsgCycleTime" BO_ 257 50
+ BA_ "GenMsgIsCANFD" BO_ 257 0
+ SG_ GearPosition     : 0|4@1+ (1,0) [0|15] "" ECU IC BCM
+ SG_ OutputSpeed      : 8|16@1+ (0.125,0) [0|8000] "rpm" ECU IC TCM
+ SG_ TransTemp        : 24|8@1+ (1,-40) [-40|215] "°C" TCM ECU
+ SG_ ShiftMode        : 32|2@1+ (1,0) [0|3] "" IC BCM
+
+ VAL_ 257 GearPosition 0 "P" 1 "R" 2 "N" 3 "D" 4 "M" 15 "Invalid"
+ VAL_ 257 ShiftMode 0 "Normal" 1 "Sport" 2 "Eco" 3 "Manual"
+
+BO_ 258 BrakeSystemInfo: 8 ABS
+ CM_ BO_ 258 "Brake system info, period 20ms"
+ BA_ "GenMsgCycleTime" BO_ 258 20
+ BA_ "GenMsgIsCANFD" BO_ 258 0
+ SG_ BrakePedalPos    : 0|12@1+ (0.025,0) [0|100] "%" ECU ABS IC
+ SG_ MasterCylPressure: 12|12@1+ (0.5,0) [0|200] "bar" ABS ECU
+ SG_ WheelSpeed_FL    : 24|8@1+ (0.1,0) [0|250] "km/h" ABS IC
+ SG_ WheelSpeed_FR    : 32|8@1+ (0.1,0) [0|250] "km/h" ABS IC
+ SG_ WheelSpeed_RL    : 40|8@1+ (0.1,0) [0|250] "km/h" ABS IC
+ SG_ WheelSpeed_RR    : 48|8@1+ (0.1,0) [0|250] "km/h" ABS IC
+
+BO_ 512 VehicleBodyStatus: 8 BCM
+ CM_ BO_ 512 "Vehicle body status, period 100ms"
+ BA_ "GenMsgCycleTime" BO_ 512 100
+ BA_ "GenMsgIsCANFD" BO_ 512 0
+ SG_ IgnitionLevel    : 0|2@1+ (1,0) [0|3] "" ECU IC GW
+ SG_ VehicleSpeed     : 8|16@1+ (0.01,0) [0|250] "km/h" ABS IC ECU
+ SG_ FuelLevel        : 24|8@1+ (0.4,0) [0|100] "%" IC BCM
+ SG_ DoorDriver       : 32|1@1+ (1,0) [0|1] "" BCM IC
+ SG_ DoorPassenger    : 33|1@1+ (1,0) [0|1] "" BCM IC
+ SG_ HeadlightStatus  : 34|2@1+ (1,0) [0|3] "" BCM IC
+
+ VAL_ 512 IgnitionLevel 0 "Off" 1 "ACC" 2 "On" 3 "Crank"
+ VAL_ 512 HeadlightStatus 0 "Off" 1 "Parking" 2 "LowBeam" 3 "HighBeam"
+
+BO_ 768 BatteryStatus: 8 ECU
+ CM_ BO_ 768 "12V battery status, period 1000ms"
+ BA_ "GenMsgCycleTime" BO_ 768 1000
+ BA_ "GenMsgIsCANFD" BO_ 768 0
+ SG_ BattVoltage      : 0|12@1+ (0.01,0) [6|16] "V" BCM IC GW
+ SG_ BattCurrent      : 12|12@1+ (0.1,-200) [-200|200] "A" BCM
+ SG_ BattSOC          : 24|8@1+ (0.5,0) [0|100] "%" BCM IC
+ SG_ BattSOH          : 32|8@1+ (0.5,0) [0|100] "%" ECU BCM
+
+
+;=====================================
+; CAN FD Messages (Extended Payload)
+;=====================================
+
+BO_ 1024 ADAS_DrivingData: 64 ADAS
+ CM_ BO_ 1024 "ADAS driving data, CAN FD, period 20ms"
+ BA_ "GenMsgCycleTime" BO_ 1024 20
+ BA_ "GenMsgIsCANFD" BO_ 1024 1
+ SG_ ACC_Active       : 0|1@1+ (1,0) [0|1] "" ADAS ECU IC
+ SG_ ACC_SetSpeed     : 1|8@1+ (1,0) [30|180] "km/h" ADAS IC
+ SG_ DistanceToLead   : 16|12@1+ (0.1,0) [0|200] "m" ADAS ECU
+ SG_ LDW_Status       : 28|2@1+ (1,0) [0|3] "" ADAS IC BCM
+ SG_ FCW_Level        : 32|3@1+ (1,0) [0|5] "" ADAS ECU IC
+ SG_ SteeringAngle    : 48|16@1+ (0.1,-1000) [-1000|1000] "deg" ADAS ABS IC
+ SG_ YawRate          : 64|12@1+ (0.01,-50) [-50|50] "deg/s" ADAS ABS ECU
+
+ VAL_ 1024 LDW_Status 0 "Off" 1 "Normal" 2 "WarningLeft" 3 "WarningRight"
+
+BO_ 1025 Powertrain_Diag: 32 ECU
+ CM_ BO_ 1025 "Powertrain diagnostic data, CAN FD, period 500ms"
+ BA_ "GenMsgCycleTime" BO_ 1025 500
+ BA_ "GenMsgIsCANFD" BO_ 1025 1
+ SG_ MIL_Lamp         : 0|1@1+ (1,0) [0|1] "" IC BCM
+ SG_ EPC_Lamp         : 1|1@1+ (1,0) [0|1] "" IC BCM
+ SG_ DTC_Count_Engine  : 8|8@1+ (1,0) [0|255] "" GW
+ SG_ DTC_Count_Trans   : 16|8@1+ (1,0) [0|255] "" GW
+ SG_ DTC_Count_Chassis : 24|8@1+ (1,0) [0|255] "" GW
+ SG_ RuntimeTotal      : 32|32@1+ (1,3600) [0|4294967295] "s" ECU GW
+
+ VAL_ 1025 MIL_Lamp 0 "Off" 1 "On"
+ VAL_ 1025 EPC_Lamp 0 "Off" 1 "On"
+
+BO_ 1026 EnvironmentalData: 64 GW
+ CM_ BO_ 1026 "Environmental & sensor data, CAN FD, period 100ms"
+ BA_ "GenMsgCycleTime" BO_ 1026 100
+ BA_ "GenMsgIsCANFD" BO_ 1026 1
+ SG_ AmbientTemp      : 0|8@1+ (0.5,-40) [-40|87.5] "°C" BCM IC
+ SG_ BarometricPress  : 8|12@1+ (0.1,800) [800|1200] "hPa" ECU ADAS
+ SG_ Humidity         : 20|8@1+ (0.4,0) [0|100] "%" ADAS BCM
+ SG_ RainSensorLevel  : 32|8@1+ (1,0) [0|15] "" BCM ADAS
+ SG_ LightSensorLevel : 40|12@1+ (1,0) [0|4095] "lux" BCM IC ADAS
+
+ VAL_ 1026 RainSensorLevel 0 "Dry" 1~5 "Light" 6~10 "Medium" 11~15 "Heavy"

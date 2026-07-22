@@ -3,15 +3,59 @@
 
 static MessageBuffer MessageBufferTable[] = {
     { 0x100, 8, {0} },
-    { 0x200, 4, {0} }
+    { 0x101, 8, {0} },
+    { 0x102, 8, {0} },
+    { 0x200, 8, {0} },
+    { 0x300, 8, {0} },
+    { 0x400, 64, {0} },
+    { 0x401, 32, {0} },
+    { 0x402, 64, {0} }
 };
 
 static const SignalInfo SignalInfoTable[CAN_SIG_ID_MAX_VALUE] = {
     { 0, 0, 16, INTEL, false, 0.25f, 0.0f, 0.0f, 8000.0f },
-    { 0, 16, 16, INTEL, false, 0.01f, 0.0f, 0.0f, 250.0f },
-    { 0, 32, 8, INTEL, false, 1.0f, 0.0f, 0.0f, 8.0f },
-    { 1, 0, 4, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f },
-    { 1, 4, 4, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f }
+    { 0, 16, 8, INTEL, false, 1.0f, -40.0f, -40.0f, 215.0f },
+    { 0, 24, 8, INTEL, false, 1.0f, -40.0f, -40.0f, 215.0f },
+    { 0, 32, 2, INTEL, false, 1.0f, 0.0f, 0.0f, 3.0f },
+    { 0, 40, 12, INTEL, false, 0.025f, 0.0f, 0.0f, 100.0f },
+    { 1, 0, 4, INTEL, false, 1.0f, 0.0f, 0.0f, 15.0f },
+    { 1, 8, 16, INTEL, false, 0.125f, 0.0f, 0.0f, 8000.0f },
+    { 1, 24, 8, INTEL, false, 1.0f, -40.0f, -40.0f, 215.0f },
+    { 1, 32, 2, INTEL, false, 1.0f, 0.0f, 0.0f, 3.0f },
+    { 2, 0, 12, INTEL, false, 0.025f, 0.0f, 0.0f, 100.0f },
+    { 2, 12, 12, INTEL, false, 0.5f, 0.0f, 0.0f, 200.0f },
+    { 2, 24, 8, INTEL, false, 0.1f, 0.0f, 0.0f, 250.0f },
+    { 2, 32, 8, INTEL, false, 0.1f, 0.0f, 0.0f, 250.0f },
+    { 2, 40, 8, INTEL, false, 0.1f, 0.0f, 0.0f, 250.0f },
+    { 2, 48, 8, INTEL, false, 0.1f, 0.0f, 0.0f, 250.0f },
+    { 3, 0, 2, INTEL, false, 1.0f, 0.0f, 0.0f, 3.0f },
+    { 3, 8, 16, INTEL, false, 0.01f, 0.0f, 0.0f, 250.0f },
+    { 3, 24, 8, INTEL, false, 0.4f, 0.0f, 0.0f, 100.0f },
+    { 3, 32, 1, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f },
+    { 3, 33, 1, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f },
+    { 3, 34, 2, INTEL, false, 1.0f, 0.0f, 0.0f, 3.0f },
+    { 4, 0, 12, INTEL, false, 0.01f, 0.0f, 6.0f, 16.0f },
+    { 4, 12, 12, INTEL, false, 0.1f, -200.0f, -200.0f, 200.0f },
+    { 4, 24, 8, INTEL, false, 0.5f, 0.0f, 0.0f, 100.0f },
+    { 4, 32, 8, INTEL, false, 0.5f, 0.0f, 0.0f, 100.0f },
+    { 5, 0, 1, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f },
+    { 5, 1, 8, INTEL, false, 1.0f, 0.0f, 30.0f, 180.0f },
+    { 5, 16, 12, INTEL, false, 0.1f, 0.0f, 0.0f, 200.0f },
+    { 5, 28, 2, INTEL, false, 1.0f, 0.0f, 0.0f, 3.0f },
+    { 5, 32, 3, INTEL, false, 1.0f, 0.0f, 0.0f, 5.0f },
+    { 5, 48, 16, INTEL, false, 0.1f, -1000.0f, -1000.0f, 1000.0f },
+    { 5, 64, 12, INTEL, false, 0.01f, -50.0f, -50.0f, 50.0f },
+    { 6, 0, 1, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f },
+    { 6, 1, 1, INTEL, false, 1.0f, 0.0f, 0.0f, 1.0f },
+    { 6, 8, 8, INTEL, false, 1.0f, 0.0f, 0.0f, 255.0f },
+    { 6, 16, 8, INTEL, false, 1.0f, 0.0f, 0.0f, 255.0f },
+    { 6, 24, 8, INTEL, false, 1.0f, 0.0f, 0.0f, 255.0f },
+    { 6, 32, 32, INTEL, false, 1.0f, 3600.0f, 0.0f, 4294967295.0f },
+    { 7, 0, 8, INTEL, false, 0.5f, -40.0f, -40.0f, 87.5f },
+    { 7, 8, 12, INTEL, false, 0.1f, 800.0f, 800.0f, 1200.0f },
+    { 7, 20, 8, INTEL, false, 0.4f, 0.0f, 0.0f, 100.0f },
+    { 7, 32, 8, INTEL, false, 1.0f, 0.0f, 0.0f, 15.0f },
+    { 7, 40, 12, INTEL, false, 1.0f, 0.0f, 0.0f, 4095.0f }
 };
 
 #define MESSAGE_BUFFER_COUNT (sizeof(MessageBufferTable) / sizeof(MessageBufferTable[0]))
