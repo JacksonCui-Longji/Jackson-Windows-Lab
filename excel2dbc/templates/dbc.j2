@@ -52,13 +52,13 @@ BA_DEF_ SG_  "GenSigMax" FLOAT -1000000 1000000;
 ; Classical CAN Messages (Standard ID)
 ;=====================================
 
-{% for message in database_classical.messages %}
+{% for message in database.messages | selectattr('is_canfd', 'equalto', False) %}
 BO_ {{ message.message_id }} {{ message.message_name }}: {{ message.dlc }} {{ message.transmitter }}
 {% if message.comment %} CM_ BO_ {{ message.message_id }} "{{ message.comment }}" {% endif %}
 {% if message.cyc_time is defined %} BA_ "GenMsgCycleTime" BO_ {{ message.message_id }} {{ message.cyc_time }} {% endif %}
  BA_ "GenMsgIsCANFD" BO_ {{ message.message_id }} {{ 0 if not message.is_canfd else 1 }}
 {% for signal in message.signals %}
- SG_ {{ signal.signal_name }}		: {{ signal.start_bit }}|{{ signal.length }}@{{ 0 if signal.byte_order == ByteOrder.INTEL else 1 }}{{ '-' if signal.signed else '+' }} ({{ signal.factor }},{{ signal.offset }}) [{{ signal.min_value }}|{{ signal.max_value }}] "{{ signal.unit }}" {{ signal.receivers | join(' ') }}
+ SG_ {{ signal.signal_name }}		: {{ signal.start_bit }}|{{ signal.length }}@{{ 1 if signal.byte_order == ByteOrder.INTEL else 0 }}{{ '-' if signal.signed else '+' }} ({{ signal.factor }},{{ signal.offset }}) [{{ signal.min_value }}|{{ signal.max_value }}] "{{ signal.unit }}" {{ signal.receivers | join(' ') }}
 {% endfor %}
 {% endfor %}
 
@@ -66,7 +66,7 @@ BO_ {{ message.message_id }} {{ message.message_name }}: {{ message.dlc }} {{ me
 ; CAN FD Messages (Extended Payload)
 ;=====================================
 
-{% for message in database_canfd.messages %}
+{% for message in database.messages | selectattr('is_canfd', 'equalto', True) %}
 BO_ {{ message.message_id }} {{ message.message_name }}: {{ message.dlc }} {{ message.transmitter }}
 {% if message.comment %} CM_ BO_ {{ message.message_id }} "{{ message.comment }}" {% endif %}
 {% if message.cyc_time is defined %} BA_ "GenMsgCycleTime" BO_ {{ message.message_id }} {{ message.cyc_time }} {% endif %}

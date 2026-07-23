@@ -29,7 +29,7 @@ class Message:
     signals: list[Signal]
     is_extended: bool = False
     is_canfd: bool = False
-    cyc_time: int
+    cyc_time: int = 0
 
 @dataclass
 class DataBase:

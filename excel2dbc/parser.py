@@ -20,11 +20,12 @@ def parse_can_matrix(ws):
             current_message = model.Message(
                 message_name=row[1],
                 message_id=int(row[2], 16),
-                is_extended = False if row[3] == "Standard" else True,
-                is_canfd = False if row[4] == "Classic CAN" else True,
                 dlc=row[5],
+                cyc_time=row[6],
                 transmitter=row[8],
-                signals=[]
+                signals=[],
+                is_extended=(row[3] != "Standard"),
+                is_canfd=(row[4] != "Classic CAN"),
             )
 
         new_signal = model.Signal(
@@ -50,9 +51,15 @@ def parse_can_matrix(ws):
 
     return model.DataBase(messages)
 
-if __name__ == "__main__":
-    wb = openpyxl.load_workbook(cur_dir/"input"/"CAN_Matrix_Sample.xlsx")
+def parse_load_workbook():
+    wb = openpyxl.load_workbook(cur_dir / "input" / "CAN_Matrix_Sample_v2.xlsx")
     ws = wb["CAN Matrix"]
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        database = parse_can_matrix(ws)
-    print(database)
+    database = parse_can_matrix(ws)
+    return database
+    # print(database)
+
+# if __name__ == "__main__":
+#     wb = openpyxl.load_workbook(cur_dir / "input" / "CAN_Matrix_Sample.xlsx")
+#     ws = wb["CAN Matrix"]
+#     database = parse_can_matrix(ws)
+#     print(database)
